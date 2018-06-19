@@ -1,11 +1,15 @@
 package chat;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 /**
@@ -15,8 +19,14 @@ import javax.websocket.server.ServerEndpoint;
  * "EchoChamber" is the name of the package
  * and "echo" is the address to access this class from the server
  */
-@ServerEndpoint("/echo")
+
+
+
+@ServerEndpoint(value = "/rooms/{roomnumber}")
 public class EchoServer {
+
+
+
     /**
      * @OnOpen allows us to intercept the creation of a new session.
      * The session class allows us to send data to the user.
@@ -24,8 +34,9 @@ public class EchoServer {
      * successful.
      */
     @OnOpen
-    public void onOpen(Session session){
-        SessionHandler.addSession(session);
+    public void onOpen(Session session, @PathParam("roomnumber") final String roomNumber){
+        session.getUserProperties().put("roomnumber",roomNumber);
+        SessionHandler.addSession(String.valueOf(session.getId()),session);
         System.out.println(session.getId() + " has opened a connection");
         try {
             session.getBasicRemote().sendText("Connection Established");
@@ -39,10 +50,17 @@ public class EchoServer {
      * and allow us to react to it. For now the message is read as a String.
      */
     @OnMessage
-    public void onMessage(String message, Session session){
+    public void onMessage(String message, Session session) {
 
-        SessionHandler.sendToAllConnectedSession(message);
-        System.out.println("Message from " + session.getId() + ": " + message);
+        // check if session corresponds to the roomnumber
+        for (Map.Entry<String, Session> entry : SessionHandler.openSessions.entrySet()) {
+            Session s = entry.getValue();
+            if (s.isOpen() && s.getUserProperties().get("roomnumber").equals(session.getUserProperties().get("roomnumber"))) {
+                SessionHandler.sendToSession(s, message);
+            }
+            //  SessionHandler.sendToAllConnectedSession(message);
+            System.out.println("Message from " + session.getId() + ": " + message);
+        }
     }
 
     /**
@@ -53,6 +71,6 @@ public class EchoServer {
     @OnClose
     public void onClose(Session session){
         System.out.println("Session " +session.getId()+" has ended");
-        SessionHandler.removeSession(session);
+        SessionHandler.removeSession(String.valueOf(session.getId()),session);
     }
 }

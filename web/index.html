@@ -9,6 +9,9 @@
 <body>
 
 <div>
+    <input type="text" id="roomid"/>
+</div>
+<div>
     <input type="text" id="messageinput"/>
 </div>
 <div>
@@ -33,7 +36,8 @@
             return;
         }
         // Create a new instance of the websocket
-        webSocket = new WebSocket("ws://localhost:8080/chat_war_exploded/echo");
+        var room = document.getElementById("roomid").value;
+        webSocket = new WebSocket("ws://localhost:8080/chat_war_exploded/rooms/" + room);
 
         /**
          * Binds functions to the listeners for the websocket.
