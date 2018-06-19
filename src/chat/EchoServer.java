@@ -22,7 +22,7 @@ import javax.websocket.server.ServerEndpoint;
 
 
 
-@ServerEndpoint(value = "/rooms/{roomnumber}")
+@ServerEndpoint(value = "/rooms/{roomnumber}/user/{user}")
 public class EchoServer {
 
 
@@ -34,8 +34,9 @@ public class EchoServer {
      * successful.
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("roomnumber") final String roomNumber){
+    public void onOpen(Session session, @PathParam("roomnumber") final String roomNumber, @PathParam("user") final String user){
         session.getUserProperties().put("roomnumber",roomNumber);
+        session.getUserProperties().put("user",user);
         SessionHandler.addSession(String.valueOf(session.getId()),session);
         System.out.println(session.getId() + " has opened a connection");
         try {
@@ -51,12 +52,12 @@ public class EchoServer {
      */
     @OnMessage
     public void onMessage(String message, Session session) {
-
+        // TODO: implement message builder
         // check if session corresponds to the roomnumber
         for (Map.Entry<String, Session> entry : SessionHandler.openSessions.entrySet()) {
             Session s = entry.getValue();
             if (s.isOpen() && s.getUserProperties().get("roomnumber").equals(session.getUserProperties().get("roomnumber"))) {
-                SessionHandler.sendToSession(s, message);
+                SessionHandler.sendToSession(s, session.getUserProperties().get("user") + ": " +message);
             }
             //  SessionHandler.sendToAllConnectedSession(message);
             System.out.println("Message from " + session.getId() + ": " + message);
