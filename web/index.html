@@ -15,7 +15,7 @@
     <input type="text" id="roomid"/>
 </div>
 <div>
-    <input type="text" id="messageinput"/>
+    <input type="text" id="messageinput" onfocus="isWriting();" onfocusout="notWriting();"/>
 </div>
 <div>
     <button type="button" onclick="openSocket();" >Open</button>
@@ -31,6 +31,7 @@
     var webSocket;
     var messages = document.getElementById("messages");
     var nick = document.getElementById("nick");
+    var messageinput = document.getElementById("messageinput");
 
     var userNumber = Math.floor(Math.random() * 99) + 1;
     nick.value = "użytkownik" + userNumber;
@@ -44,7 +45,7 @@
         // Create a new instance of the websocket
         var room = document.getElementById("roomid").value;
 
-        webSocket = new WebSocket("ws://localhost:8080/chat_war_exploded/rooms/" + room + /user/ + nick.value());
+        webSocket = new WebSocket("ws://localhost:8080/EchoChamber/rooms/" + room + /user/ + nick.value);
 
 
         /**
@@ -67,12 +68,30 @@
         };
     }
 
+    function isWriting(){
+        // send message that x is writing
+
+        console.log("writing");
+
+    }
+
+    function notWriting() {
+
+        // send message that x has stopped writing
+
+
+        console.log("not writing");
+
+
+    }
+
     /**
      * Sends the value of the text input to the server
      */
     function send(){
         var text = document.getElementById("messageinput").value;
         webSocket.send(text);
+        console.log("Xd");
     }
 
     function closeSocket(){
