@@ -1,5 +1,7 @@
 package chat;
 
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -22,7 +24,7 @@ import javax.websocket.server.ServerEndpoint;
 
 
 
-@ServerEndpoint(value = "/rooms/{roomnumber}/user/{user}")
+@ServerEndpoint(value = "/rooms/{room}/user/{user}")
 public class EchoServer {
 
 
@@ -34,11 +36,13 @@ public class EchoServer {
      * successful.
      */
     @OnOpen
-    public void onOpen(Session session, @PathParam("roomnumber") final String roomNumber, @PathParam("user") final String user){
-        session.getUserProperties().put("roomnumber",roomNumber);
+    public void onOpen(Session session, @PathParam("room") final String room, @PathParam("user") final String user){
+
+        session.getUserProperties().put("room",room);
         session.getUserProperties().put("user",user);
+
         SessionHandler.addSession(String.valueOf(session.getId()),session);
-        System.out.println(session.getId() + " has opened a connection");
+
         try {
             session.getBasicRemote().sendText("Connection Established");
         } catch (IOException ex) {
@@ -51,17 +55,19 @@ public class EchoServer {
      * and allow us to react to it. For now the message is read as a String.
      */
     @OnMessage
-    public void onMessage(String message, Session session) {
-        // TODO: implement message builder
-        // check if session corresponds to the roomnumber
-        for (Map.Entry<String, Session> entry : SessionHandler.openSessions.entrySet()) {
-            Session s = entry.getValue();
-            if (s.isOpen() && s.getUserProperties().get("roomnumber").equals(session.getUserProperties().get("roomnumber"))) {
-                SessionHandler.sendToSession(s, session.getUserProperties().get("user") + ": " +message);
+    public void onMessage(String json, Session session) {
+
+            for (Map.Entry<String, Session> entry : SessionHandler.openSessions.entrySet()) {
+                Session s = entry.getValue();
+                if (s.isOpen()) {
+                    SessionHandler.sendToRoom(json, session.getUserProperties().get("room").toString());
+
+                }
             }
-            //  SessionHandler.sendToAllConnectedSession(message);
-            System.out.println("Message from " + session.getId() + ": " + message);
-        }
+
+
+
+        // check if session corresponds to the roomn
     }
 
     /**

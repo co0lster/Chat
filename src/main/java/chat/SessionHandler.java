@@ -36,9 +36,22 @@ public class SessionHandler {
 
     }
 
-    public static void sendToAllConnectedSession(String message){
+    public static void sendToRoom(String message, String room){
+        sessions.forEach( x -> {
+            if(x.getUserProperties().containsValue(room)) {
+                try {
+                    x.getBasicRemote().sendText(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void sendToSessionExceptMe(String message, String me){
         sessions.forEach(x -> {
             try {
+                if(x.getUserProperties().containsValue(me))
                 x.getBasicRemote().sendText(message);
             } catch (IOException e) {
                 e.printStackTrace();
